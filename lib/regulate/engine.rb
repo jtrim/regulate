@@ -18,7 +18,19 @@ module Regulate
         yaml_data = YAML.load_file(yaml_path)[Rails.env]
 
         # Now set our repo
-        config.repo = yaml_data['repo']
+        repo_path = File.join(config.app_root, yaml_data['repo'])
+        repo = File.join(repo_path, ".git")
+        init = false
+
+        if !File.directory?(repo_path)
+          FileUtils.mkdir_p(repo_path)
+          init = true
+        elsif !File.directory?(repo)
+          init = true
+        end
+
+        Grit::Repo.init(repo_path) if init
+        config.repo = Grit::Repo.new(repo_path)
 
       end
     end

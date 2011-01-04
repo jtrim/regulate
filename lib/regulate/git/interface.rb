@@ -4,84 +4,135 @@ module Regulate
 
     class Interface
 
-      attr_reader :repo
+      class << self
 
-      def initialize
-        @repo = Grit::Repo.new(Regulate::Configuration.instance.repo)
-      end
+        # Expected options
+        #Regulate::Git::Interface.create({
+          #:id => id,
+          #:commit_message => commit_message,
+          #:author_name => author_name,
+          #:author_email => author_email,
+          #:attributes => build_attributes_json,
+          #:rendered => build_rendered_html
+        #})
+        def create(options = {})
 
-      def create_page(options = {})
-        # Build up commit data
-        commit = build_commit(options[:commit_message], 
-                              options[:author_name], 
-                              options[:author_email], 
-                              :create)
+          # Check to see if this page all ready exists
+          raise Regulate::Git::Errors::DuplicatePageError.new('page already exists') if exists?(options[:id])
 
-        # Get the index
-        index  = self.repo.index
+          # Build up commit data
+          commit = build_commit(options[:commit_message],
+                                options[:author_name],
+                                options[:author_email],
+                                :create)
 
-        # Read the tree if we are on master
-        if parent_commit = @repo.commit('master')
-          index.read_tree(parent_commit.tree.id)
+          # Get the index
+          index  = Regulate.repo.index
+
+          # Read the tree if we are on master
+          if parent_commit = Regulate.repo.commit('master')
+            index.read_tree(parent_commit.tree.id)
+          end
+
+          # Add the page attributes
+          index.add(File.join(options[:id], 'attributes.json'), options[:attributes])
+          index.add(File.join(options[:id], 'rendered.html'), options[:rendered])
+
+          # Determine if we have a parent so we can do stuff like git log
+          parents = parent_commit ? [parent_commit] : []
+
+          # Make a new commit and return the sha
+          actor   = Grit::Actor.new(commit[:name], commit[:email])
+          index.commit(commit[:message], parents, actor)
+          update_working_dir( index, File.join(options[:id], 'attributes.json') )
+          update_working_dir( index, File.join(options[:id], 'rendered.html') )
         end
 
-        # Add the page with data
-        puts page_path(options[:name], options[:format])
-        index.add(page_path(options[:name], options[:format]), options[:content])
-
-        # Determine if we have a parent so we can do stuff like git log
-        parents = parent_commit ? [parent_commit] : []
-
-        # Make a new commit and return the sha
-        actor   = Grit::Actor.new(commit[:name], commit[:email])
-        index.commit(commit[:message], parents, actor)
-      end
-
-      def update_page(options = {})
-
-      end
-
-      def find_page(name)
-
-      end
-
-      def delete_page(name)
-
-      end
-
-      def pages
-
-      end
-
-      def build_commit(commit_message, author_name, author_email, mode)
-        {
-          :name     => author_name     ||= "Anonymous",
-          :email    => author_email    ||= "anon@anonymous.com",
-          :messege  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
-        }
-      end
-
-      def format_extension(format)
-        case format
-          when :markdown then 'md'
-          when :textile  then 'textile'
-          when :rdoc     then 'rdoc'
-          when :org      then 'org'
-          when :creole   then 'creole'
-          when :rest     then 'rest'
-          when :asciidoc then 'asciidoc'
-          when :pod      then 'pod'
+        def update(options = {})
         end
-      end
 
-      def id(name)
-        name.respond_to?(:gsub) ? name.gsub(%r{[ /<>]}, '-') : ''
-      end
+        def find_page(name)
+        end
 
-      def page_path(name, format)
-        page_path = "/#{id(name)}.#{format_extension(format)}"
-        page_path = page_path[1..-1] if page_path =~ /^\//
-        page_path
+        def delete_page(name)
+        end
+
+        def pages
+        end
+
+        # Update the given file in the repository's working directory if there
+        # is a working directory present.
+        #
+        # index  - The Grit::Index with which to sync.
+        # dir    - The String directory in which the file lives.
+        # name   - The String name of the page (may be in human format).
+        # format - The Symbol format of the page.
+        #
+        # Returns nothing.
+        def update_working_dir( index, path )
+          unless Regulate.repo.bare
+            Dir.chdir(::File.join(Regulate.repo.path, '..')) do
+              if file_path_scheduled_for_deletion?(index.tree, path)
+                Regulate.repo.git.rm({'f' => true}, '--', path)
+              else
+                Regulate.repo.git.checkout({}, 'HEAD', '--', path)
+              end
+            end
+          end
+        end
+
+        # Determine if a given file is scheduled to be deleted in the next commit
+        # for the given Index.
+        #
+        # map   - The Hash map:
+        #         key - The String directory or filename.
+        #         val - The Hash submap or the String contents of the file.
+        # path - The String path of the file including extension.
+        #
+        # Returns the Boolean response.
+        def file_path_scheduled_for_deletion?(map, path)
+          parts = path.split('/')
+          if parts.size == 1
+            deletions = map.keys.select { |k| !map[k] }
+            deletions.any? { |d| d == parts.first }
+          else
+            part = parts.shift
+            if rest = map[part]
+              file_path_scheduled_for_deletion?(rest, parts.join('/'))
+            else
+              false
+            end
+          end
+        end
+
+
+        def build_commit(commit_message, author_name, author_email, mode)
+          {
+            :name     => author_name     ||= "Anonymous",
+            :email    => author_email    ||= "anon@anonymous.com",
+            :messege  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
+          }
+        end
+
+        def exists?(id)
+          Regulate.repo.commits.any? && !(current_tree / File.join(id, 'attributes.json')).nil?
+        end
+
+        def last_commit
+          branch = 'master'
+          return nil unless Regulate.repo.commits(branch).any?
+
+          # We should be able to use just repo.commits(branch).first here but
+          # this is a workaround for this bug: 
+          # http://github.com/mojombo/grit/issues/issue/38
+          Regulate.repo.commits("#{branch}^..#{branch}").first || Regulate.repo.commits(branch).first
+        end
+
+        def current_tree
+          c = last_commit
+          c ? c.tree : nil
+        end
+
       end
 
     end

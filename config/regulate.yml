@@ -1,7 +1,7 @@
 development:
   repo: db/repos/development.git
 test: &test
-  repo: db/repos/test_engine.git  
+  repo: db/repos/test_engine.git
 production:
   repo: db/repos/production.git
 daily:
