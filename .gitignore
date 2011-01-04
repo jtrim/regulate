@@ -5,4 +5,5 @@ pkg/*
 .bundle
 .DS_Store
 *.sw[o|a|p]
+test/dummy/db/repos/*
 
