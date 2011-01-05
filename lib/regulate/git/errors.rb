@@ -6,6 +6,10 @@ module Regulate
 
      class DuplicatePageError < StandardError; end
 
+     class InvalidGitResourceError < StandardError; end
+
+     class PageDoesNotExist < StandardError; end
+
    end
 
   end

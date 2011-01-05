@@ -6,6 +6,9 @@ module Regulate
 
       class << self
 
+        def find(id)
+        end
+
         # Expected options
         #Regulate::Git::Interface.create({
           #:id => id,
@@ -15,16 +18,27 @@ module Regulate
           #:attributes => build_attributes_json,
           #:rendered => build_rendered_html
         #})
-        def create(options = {})
+        def save(options = {})
+          commit( options , :create) do |index|
+            index.add(File.join(options[:id], 'attributes.json'), options[:attributes])
+            index.add(File.join(options[:id], 'rendered.html'), options[:rendered])
+          end
+        end
 
-          # Check to see if this page all ready exists
-          raise Regulate::Git::Errors::DuplicatePageError.new('page already exists') if exists?(options[:id])
+        def delete(options = {})
+          commit( options , :delete ) do |index|
+            # Delete the folder that holds the attributes and the render.html
+            index.delete(File.join(options[:id],'attributes.json'))
+            index.delete(File.join(options[:id],'rendered.html'))
+          end
+        end
 
+        def commit( options , type , &blk )
           # Build up commit data
           commit = build_commit(options[:commit_message],
                                 options[:author_name],
                                 options[:author_email],
-                                :create)
+                                type)
 
           # Get the index
           index  = Regulate.repo.index
@@ -34,9 +48,7 @@ module Regulate
             index.read_tree(parent_commit.tree.id)
           end
 
-          # Add the page attributes
-          index.add(File.join(options[:id], 'attributes.json'), options[:attributes])
-          index.add(File.join(options[:id], 'rendered.html'), options[:rendered])
+          yield index
 
           # Determine if we have a parent so we can do stuff like git log
           parents = parent_commit ? [parent_commit] : []
@@ -44,22 +56,11 @@ module Regulate
           # Make a new commit and return the sha
           actor   = Grit::Actor.new(commit[:name], commit[:email])
           sha     = index.commit(commit[:message], parents, actor)
-          update_working_dir( index, File.join(options[:id], 'attributes.json') )
+
+          update_working_dir( index, File.join(options[:id],'attributes.json') )
           update_working_dir( index, File.join(options[:id], 'rendered.html') )
 
           sha
-        end
-
-        def update(options = {})
-        end
-
-        def find_page(name)
-        end
-
-        def delete_page(name)
-        end
-
-        def pages
         end
 
         # Update the given file in the repository's working directory if there
@@ -114,7 +115,7 @@ module Regulate
           {
             :name     => author_name.nil? ? "Anonymous" : author_name,
             :email    => author_email    ||= "anon@anonymous.com",
-            :messege  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
+            :message  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
           }
         end
 

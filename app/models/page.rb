@@ -1,12 +1,8 @@
 module Regulate
 
   class Page < Regulate::Git::Model::Base
-    attributes :id, :commit_message, :author_name, :author_email, :title, :view, :content
-    validates_presence_of :title, :view, :content
-
-    def build_rendered_html
-      '<h1>Test</h1>'
-    end
+    attributes :id, :commit_message, :author_name, :author_email, :title, :view, :custom_fields
+    validates_presence_of :title, :view
 
     def title=(new_title)
       @title = new_title

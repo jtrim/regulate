@@ -12,31 +12,77 @@ module Regulate
         extend  ActiveModel::Naming
 
         def initialize(attributes = {})
-          attributes.each do |attr, value|
-            self.send("#{attr}=", value)
-          end unless attributes.blank?
+          @new_record = true
+          @custom_fields = {}
+          assign_attributes(attributes)
         end
 
         def destroy
+          Regulate::Git::Interface.delete({
+            :id => id,
+            :commit_message => commit_message,
+            :author_name => author_name,
+            :author_email => author_email
+          })
         end
 
         def self.find(name)
         end
 
-        def create
-          Regulate::Git::Interface.create({
-            :id => id,
-            :commit_message => commit_message,
-            :author_name => author_name,
-            :author_email => author_email,
-            :attributes => attributes.to_json(:only => ['title', 'id', 'view', 'content']),
-            :rendered => build_rendered_html
-          }) if valid?
+        def update_attributes(args = {})
+          assign_attributes(args)
+          save
         end
 
-        def persisted?
-          !id.blank?
+        def update_attributes!(args = {})
+          assign_attributes(args)
+          save!
         end
+
+        def save
+          if new_record?
+            raise Regulate::Git::Errors::DuplicatePageError if Regulate::Git::Interface.exists?(id)
+          else
+            raise Regulate::Git::Errors::PageDoesNotExist unless Regulate::Git::Interface.exists?(id)
+          end
+
+          if valid?
+            Regulate::Git::Interface.save({
+              :id => id,
+              :commit_message => commit_message,
+              :author_name => author_name,
+              :author_email => author_email,
+              :attributes => attributes.to_json(:except => ['author_email', 'author_name', 'commit_message']),
+              :rendered => build_rendered_html
+            })
+          else
+            false
+          end
+        end
+
+        def save!
+          if valid?
+            save
+          else
+            raise Regulate::Git::Errors::InvalidGitResourceError
+          end
+        end
+
+        def build_rendered_html
+          rendered = self.view
+          rendered.gsub!( /\{\{(.+?)\}\}/ ) do |match|
+            custom_fields[$1]
+          end
+          rendered
+        end
+
+        def new_record?
+          @new_record || false
+        end
+
+        #def persisted?
+          #!id.blank?
+        #end
 
         class_attribute :_attributes
         self._attributes = []
@@ -68,6 +114,11 @@ module Regulate
           send(attribute).present?
         end
 
+        def assign_attributes(args = {})
+          args.each do |attr, value|
+            send("#{attr}=", value)
+          end unless args.blank?
+        end
       end
 
     end
