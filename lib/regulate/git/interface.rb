@@ -43,9 +43,11 @@ module Regulate
 
           # Make a new commit and return the sha
           actor   = Grit::Actor.new(commit[:name], commit[:email])
-          index.commit(commit[:message], parents, actor)
+          sha     = index.commit(commit[:message], parents, actor)
           update_working_dir( index, File.join(options[:id], 'attributes.json') )
           update_working_dir( index, File.join(options[:id], 'rendered.html') )
+
+          sha
         end
 
         def update(options = {})
@@ -69,6 +71,7 @@ module Regulate
         # format - The Symbol format of the page.
         #
         # Returns nothing.
+        # @see https://github.com/github/gollum/blob/master/lib/gollum/wiki.rb
         def update_working_dir( index, path )
           unless Regulate.repo.bare
             Dir.chdir(::File.join(Regulate.repo.path, '..')) do
@@ -90,6 +93,7 @@ module Regulate
         # path - The String path of the file including extension.
         #
         # Returns the Boolean response.
+        # @see https://github.com/github/gollum/blob/master/lib/gollum/wiki.rb
         def file_path_scheduled_for_deletion?(map, path)
           parts = path.split('/')
           if parts.size == 1
@@ -108,7 +112,7 @@ module Regulate
 
         def build_commit(commit_message, author_name, author_email, mode)
           {
-            :name     => author_name     ||= "Anonymous",
+            :name     => author_name.nil? ? "Anonymous" : author_name,
             :email    => author_email    ||= "anon@anonymous.com",
             :messege  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
           }
