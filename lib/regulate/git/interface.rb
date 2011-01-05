@@ -6,7 +6,16 @@ module Regulate
 
       class << self
 
+        def commits(id)
+          Regulate.repo.log( 'master' , id )
+        end
+
         def find(id)
+          ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
+        end
+
+        def find_by_version(version)
+          Regulate.repo.blob(version).data
         end
 
         # Expected options

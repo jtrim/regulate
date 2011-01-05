@@ -11,8 +11,8 @@ module Regulate
         include ActiveModel::AttributeMethods
         extend  ActiveModel::Naming
 
-        def initialize(attributes = {})
-          @new_record = true
+        def initialize( attributes = {} , new_record = true )
+          @new_record = new_record
           @custom_fields = {}
           assign_attributes(attributes)
         end
@@ -26,7 +26,18 @@ module Regulate
           })
         end
 
-        def self.find(name)
+        def self.find(id)
+          resource_data = Regulate::Git::Interface.find(id) || raise(Regulate::Git::Errors::PageDoesNotExist)
+          self.new(JSON.parse(resource_data),false)
+        end
+
+        def self.find_by_version(version)
+          resource_data = Regulate::Git::Interface.find_by_version(version) || raise(Regulate::Git::Errors::PageDoesNotExist)
+          self.new(JSON.parse(resource_data),false)
+        end
+
+        def versions
+          Regulate::Git::Interface.commits(id)
         end
 
         def update_attributes(args = {})
@@ -61,11 +72,7 @@ module Regulate
         end
 
         def save!
-          if valid?
-            save
-          else
-            raise Regulate::Git::Errors::InvalidGitResourceError
-          end
+          ( valid? ) ? save : raise(Regulate::Git::Errors::InvalidGitResourceError)
         end
 
         def build_rendered_html
