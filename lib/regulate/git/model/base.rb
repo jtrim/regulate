@@ -40,6 +40,10 @@ module Regulate
           Regulate::Git::Interface.commits(id)
         end
 
+        def rendered
+          Regulate::Git::Interface.find_rendered(id)
+        end
+
         def update_attributes(args = {})
           assign_attributes(args)
           save

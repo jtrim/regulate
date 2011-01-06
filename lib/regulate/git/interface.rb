@@ -14,6 +14,10 @@ module Regulate
           ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
         end
 
+        def find_rendered(id)
+          ( Regulate.repo.tree / File.join( id , 'rendered.html' ) ).data
+        end
+
         def find_by_version(version)
           Regulate.repo.blob(version).data
         end

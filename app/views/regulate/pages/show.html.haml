@@ -1,0 +1,9 @@
+%h2= @page.title
+%cite= @page.versions.first.author.name
+%div= raw @page.rendered
+%ul
+  - @page.versions.each do |version|
+    %li
+      = "Author: #{ version.author.name }"
+      = "Commit Message: #{ version.message }"
+      = "Authored Date: #{ version.authored_date }"

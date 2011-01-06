@@ -1,0 +1,14 @@
+<h2><%= @page.title %></h2>
+<cite>by, <%= @page.versions.first.author.name %></cite>
+<div>
+  <%= raw @page.rendered %>
+</div>
+<ul>
+  <% @page.versions.each do |version| %>
+    <li>
+      Author: <%= version.author.name %><br />
+      Commit Message: <%= version.message %><br />
+      Authored Date: <%= version.authored_date %>
+    </li>
+  <% end %>
+</ul>

@@ -12,6 +12,10 @@ module Regulate
   # The repo we'll be using
   mattr_accessor :repo
 
+  # Route namespace
+  mattr_accessor :route_namespace
+  @@route_namespace = "cms"
+
   def self.setup
     yield self
   end

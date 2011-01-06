@@ -1,3 +1,10 @@
 Rails.application.routes.draw do
-  resources :pages
+
+  scope Regulate.route_namespace, :module => :regulate, :as => :regulate do
+    resources :pages, :only => [ :show ]
+    scope "admin", :module => :admin, :as => :admin do
+      resources :pages
+    end
+  end
+
 end
