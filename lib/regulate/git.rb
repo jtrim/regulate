@@ -10,7 +10,7 @@ module Regulate
     autoload :Model     , 'regulate/git/model'
     autoload :Interface , 'regulate/git/interface'
 
-  end
+  end # module Git
 
-end
+end # module Regulate
 

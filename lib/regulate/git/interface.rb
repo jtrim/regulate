@@ -9,7 +9,7 @@ module Regulate
         # Find all commits for a given id
         # Essentially looks for all folders in our repo whose names match the given id
         #
-        # @param [String] The id to search for
+        # @param [String] id The id to search for
         # @return [Array] An array of Grit::Commit objects
         def commits(id)
           Regulate.repo.log( 'master' , id )
