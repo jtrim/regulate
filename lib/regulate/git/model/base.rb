@@ -150,9 +150,6 @@ module Regulate
           end
         end
 
-        # These attributes will be required for all of our models, so we set them here
-        attributes :id, :commit_message, :author_name, :author_email, :title, :view
-
         # Our class methods
         class << self
 
@@ -197,6 +194,9 @@ module Regulate
           end
 
         end
+
+        # These attributes will be required for all of our models, so we set them here
+        attributes :id, :commit_message, :author_name, :author_email, :title, :view
 
         protected
 
