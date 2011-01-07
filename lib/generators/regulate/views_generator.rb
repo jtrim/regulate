@@ -4,12 +4,15 @@ module Regulate
 
     # Class lifted from Devise.  Thanks josevalim!
     class ViewsGenerator < Rails::Generators::Base
+
+      # Tell Rails where our view files are
       source_root File.expand_path("../../../../app/views", __FILE__)
       desc "Copies all Regulate views to your application in app/views/pages."
 
       class_option :template_engine, :type => :string, :aliases => "-t",
                                      :desc => "Template engine for the views. Available options are 'erb' and 'haml'."
 
+      # Copy over our view files
       def copy_views
         case options[:template_engine].to_s
         when "haml"
@@ -23,6 +26,7 @@ module Regulate
 
     protected
 
+      # Check whether the current environment has HAML
       def verify_haml_existence
         begin
           require 'haml'
@@ -32,6 +36,7 @@ module Regulate
         end
       end
 
+      # Make sure we have the right HAML version
       def verify_haml_version
         unless Haml.version[:major] == 2 and Haml.version[:minor] >= 3 or Haml.version[:major] >= 3
           say "To generate HAML templates, you need to install HAML 2.3 or above."
@@ -39,6 +44,7 @@ module Regulate
         end
       end
 
+      # Copy over the HAML files
       def create_and_copy_haml_views
         require 'tmpdir'
         html_root = "#{self.class.source_root}/pages"

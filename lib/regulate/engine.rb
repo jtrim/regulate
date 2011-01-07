@@ -1,5 +1,7 @@
 module Regulate
 
+  # Our instance of the Rails::Engine class that will allow us to load our functionality
+  # in to a host app
   class Engine < Rails::Engine
 
     initializer 'regulate.load_app_instance_data' do |app|

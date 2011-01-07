@@ -4,6 +4,7 @@ module Regulate
 
     module Model
 
+      # Our standard base class for all git resources
       class Base
         # Standard ActiveModel includes so that our resources are Rails friendly
         include ActiveModel::Validations

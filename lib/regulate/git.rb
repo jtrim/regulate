@@ -3,6 +3,7 @@ require 'grit'
 
 module Regulate
 
+  # Our module to contain all get related functionality
   module Git
 
     # Autoloads

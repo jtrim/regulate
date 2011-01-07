@@ -2,15 +2,19 @@ module Regulate
 
   module Git
 
-   module Errors
+    # The module that will hold all Git related errors
+    module Errors
 
-     class DuplicatePageError < StandardError; end
+      # Used when attempting to save a Git resource that already exists
+      class DuplicatePageError < StandardError; end
 
-     class InvalidGitResourceError < StandardError; end
+      # Used when there is a problem with a Git resource
+      class InvalidGitResourceError < StandardError; end
 
-     class PageDoesNotExist < StandardError; end
+      # Used when attempting to persist a Git resource that doesn't already exist
+      class PageDoesNotExist < StandardError; end
 
-   end
+    end
 
   end
 

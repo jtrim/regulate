@@ -1,1 +1,1 @@
-app/**/*.rb lib/**/*.rb - README.md LICENSE
+app/**/*.rb config/routes.rb lib/**/*.rb - README.md LICENSE

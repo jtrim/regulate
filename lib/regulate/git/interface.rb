@@ -2,6 +2,7 @@ module Regulate
 
   module Git
 
+    # The class that we'll use to interact with our Git repositories
     class Interface
 
       class << self

@@ -1,6 +1,7 @@
 # Requires
 require 'active_support/dependencies'
 
+# Our top level module to contain all of our engine gem functionality
 module Regulate
 
   # Autoloads
