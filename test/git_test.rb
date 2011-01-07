@@ -2,7 +2,7 @@ require 'test_helper'
 
 class GitTest < ActiveSupport::TestCase
   test "create page" do
-    sha = Regulate::Git::Interface.create({
+    sha = Regulate::Git::Interface.save({
             :id => 'a-real-deal-id',
             :commit_message => 'Creating Page',
             :author_name => 'Collin',
