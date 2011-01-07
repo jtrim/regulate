@@ -6,46 +6,86 @@ module Regulate
 
       class << self
 
+        # Find all commits for a given id
+        # Essentially looks for all folders in our repo whose names match the given id
+        #
+        # @param [String] The id to search for
+        # @return [Array] An array of Grit::Commit objects
         def commits(id)
           Regulate.repo.log( 'master' , id )
         end
 
+        # Find and return relavant data for a given id
+        #
+        # @param [String] The id to search for
+        # @return [String] The contents of the attributes.json file for the given id
         def find(id)
           ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
         end
 
+        # Find and return the rendered HTML for a given id
+        #
+        # @param [String] id The id to search for
+        # @return [String] The contents of the rendered.html file for the given id
         def find_rendered(id)
           ( Regulate.repo.tree / File.join( id , 'rendered.html' ) ).data
         end
 
+        # Find the contents of a file given it's version SHA
+        # @param [String] The version SHA hash of the blob
+        # @return [String] The contents of the blob at that version
         def find_by_version(version)
           Regulate.repo.blob(version).data
         end
 
-        # Expected options
-        #Regulate::Git::Interface.create({
-          #:id => id,
-          #:commit_message => commit_message,
-          #:author_name => author_name,
-          #:author_email => author_email,
-          #:attributes => build_attributes_json,
-          #:rendered => build_rendered_html
-        #})
+        # Save changes to a resource directory with a commit
+        # All of the keys in the example are expected!
+        #
+        # @param [Hash] A hash containing all the data we'll need to make a commit
+        # @example A sample save call
+        #   Regulate::Git::Interface.save({
+        #     :id => id,
+        #     :commit_message => commit_message,
+        #     :author_name => author_name,
+        #     :author_email => author_email,
+        #     :attributes => attributes_json,
+        #     :rendered => rendered_html
+        #   })
         def save(options = {})
-          commit( options , :create) do |index|
+          # Begin a commit operation
+          commit( options , :create ) do |index|
+            # Persist changes to both of our needed files
             index.add(File.join(options[:id], 'attributes.json'), options[:attributes])
             index.add(File.join(options[:id], 'rendered.html'), options[:rendered])
           end
         end
 
+        # Delete a resource directory with a commit
+        # All of the keys in the example are expected!
+        #
+        # @param [Hash] A hash containing all the data we'll need to make a commit
+        # @yield [index] Our actual commit operations performed in their respective convenience functions
+        # @yieldparam [Grit::Index] Our repo index
+        # @example A sample delete call
+        #   Regulate::Git::Interface.save({
+        #     :id => id,
+        #     :commit_message => commit_message,
+        #     :author_name => author_name,
+        #     :author_email => author_email
+        #   })
         def delete(options = {})
+          # Begin a commit operation
           commit( options , :delete ) do |index|
-            # Delete the folder that holds the attributes and the render.html
+            # Delete both of our files in the resource directory to delete the directory
             index.delete(File.join(options[:id],'attributes.json'))
             index.delete(File.join(options[:id],'rendered.html'))
           end
         end
 
+        # Create a commit
+        #
+        # @param [Hash] A hash containing all the data we'll need to make a commit
+        # @param [Symbol] The type of commit that we're making - used to create commit messages and set other standard data
         def commit( options , type , &blk )
           # Build up commit data
           commit = build_commit(options[:commit_message],
@@ -70,6 +110,8 @@ module Regulate
           actor   = Grit::Actor.new(commit[:name], commit[:email])
           sha     = index.commit(commit[:message], parents, actor)
 
+          # Update our working directory so that the repo truly reflects the desired state
+          # Do this for each of our files that we might have made changes to
           update_working_dir( index, File.join(options[:id],'attributes.json') )
           update_working_dir( index, File.join(options[:id], 'rendered.html') )
 
@@ -124,6 +166,12 @@ module Regulate
         end
 
 
+        # Setup some standard commit data
+        #
+        # @param [String] Our commit message
+        # @param [String] Our author name
+        # @param [String] Our author email
+        # @param [String] The type of action being taken in the commit
         def build_commit(commit_message, author_name, author_email, mode)
           {
             :name     => author_name.nil? ? "Anonymous" : author_name,
@@ -132,10 +180,14 @@ module Regulate
           }
         end
 
+        # Return whether or not a resource directory exists in the repo with the given ID
         def exists?(id)
           Regulate.repo.commits.any? && !(current_tree / File.join(id, 'attributes.json')).nil?
         end
 
+        # Return a commit object representing the last commit on the active repo
+        #
+        # @return [Grit::Commit] A Grit::Commit object representing the most recent commit on the active repository
         def last_commit
           branch = 'master'
           return nil unless Regulate.repo.commits(branch).any?
@@ -146,16 +198,17 @@ module Regulate
           Regulate.repo.commits("#{branch}^..#{branch}").first || Regulate.repo.commits(branch).first
         end
 
+        # The tree for the last commit on the active repo
         def current_tree
           c = last_commit
           c ? c.tree : nil
         end
 
-      end
+      end # Interface class methods ( class << self )
 
-    end
+    end # class Interface
 
-  end
+  end # module Git
 
-end
+end # module Regulate
 

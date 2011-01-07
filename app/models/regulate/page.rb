@@ -1,12 +1,17 @@
 module Regulate
 
+  # The standard model for our CMS engine
   class Page < Regulate::Git::Model::Base
-    attributes :id, :commit_message, :author_name, :author_email, :title, :view, :custom_fields
-    validates_presence_of :title, :view
 
+    # A title= override so that we are setting a URI-friendly id
+    #
+    # @param [String] The new title of our page
+    # @return [NilClass]
     def title=(new_title)
       @title = new_title
-      @id = self.title.gsub(%r{[ /<>]}, '-')
+      # Make sure that we're setting our ID.
+      # This needs to be URI-friendly
+      @id = self.title.gsub(%r{[ /<>]}, '-').downcase
     end
 
   end

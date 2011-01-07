@@ -7,4 +7,6 @@ pkg/*
 *.sw[o|a|p]
 test/dummy/db/repos/*
 test/dummy/db/*.sqlite3
+doc
+.yardoc
 
