@@ -11,15 +11,15 @@ module Regulate
         #
         # @param [String] id The id to search for
         # @return [Array] An array of Grit::Commit objects
-        def commits(id)
+        def commits( id )
           Regulate.repo.log( 'master' , id )
         end
 
         # Find and return relavant data for a given id
         #
-        # @param [String] The id to search for
+        # @param [String] id The id to search for
         # @return [String] The contents of the attributes.json file for the given id
-        def find(id)
+        def find( id )
           ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
         end
 
@@ -27,21 +27,21 @@ module Regulate
         #
         # @param [String] id The id to search for
         # @return [String] The contents of the rendered.html file for the given id
-        def find_rendered(id)
+        def find_rendered( id )
           ( Regulate.repo.tree / File.join( id , 'rendered.html' ) ).data
         end
 
         # Find the contents of a file given it's version SHA
-        # @param [String] The version SHA hash of the blob
+        # @param [String] version The version SHA hash of the blob
         # @return [String] The contents of the blob at that version
-        def find_by_version(version)
+        def find_by_version( version )
           Regulate.repo.blob(version).data
         end
 
         # Save changes to a resource directory with a commit
         # All of the keys in the example are expected!
         #
-        # @param [Hash] A hash containing all the data we'll need to make a commit
+        # @param [Hash] options A hash containing all the data we'll need to make a commit
         # @example A sample save call
         #   Regulate::Git::Interface.save({
         #     :id => id,
@@ -51,7 +51,7 @@ module Regulate
         #     :attributes => attributes_json,
         #     :rendered => rendered_html
         #   })
-        def save(options = {})
+        def save( options = {} )
           # Begin a commit operation
           commit( options , :create ) do |index|
             # Persist changes to both of our needed files
@@ -63,9 +63,7 @@ module Regulate
         # Delete a resource directory with a commit
         # All of the keys in the example are expected!
         #
-        # @param [Hash] A hash containing all the data we'll need to make a commit
-        # @yield [index] Our actual commit operations performed in their respective convenience functions
-        # @yieldparam [Grit::Index] Our repo index
+        # @param [Hash] options A hash containing all the data we'll need to make a commit
         # @example A sample delete call
         #   Regulate::Git::Interface.save({
         #     :id => id,
@@ -73,7 +71,7 @@ module Regulate
         #     :author_name => author_name,
         #     :author_email => author_email
         #   })
-        def delete(options = {})
+        def delete( options = {} )
           # Begin a commit operation
           commit( options , :delete ) do |index|
             # Delete both of our files in the resource directory to delete the directory
@@ -84,8 +82,11 @@ module Regulate
 
         # Create a commit
         #
-        # @param [Hash] A hash containing all the data we'll need to make a commit
-        # @param [Symbol] The type of commit that we're making - used to create commit messages and set other standard data
+        # @param [Hash] options A hash containing all the data we'll need to make a commit
+        # @param [Symbol] type The type of commit that we're making - used to create commit messages and set other standard data
+        # @param [Proc] &blk The meat of the commit to be performed in other convenience functions
+        # @yield [index] Our actual commit operations performed in their respective convenience functions
+        # @yieldparam [Grit::Index] Our repo index
         def commit( options , type , &blk )
           # Build up commit data
           commit = build_commit(options[:commit_message],
@@ -127,8 +128,12 @@ module Regulate
         # format - The Symbol format of the page.
         #
         # Returns nothing.
-        # @see https://github.com/github/gollum/blob/master/lib/gollum/wiki.rb
-        def update_working_dir( index, path )
+        # @see https://github.com/github/gollum/blob/79a1fb860d261d7f836fe75f5f8b4b88fc541a0c/lib/gollum/wiki.rb#L417
+        #
+        # @param [Grit::Index] index The git index that we are working on
+        # @param [String] path The path/path-to-file that we want to update to represent the true state of the repo
+        # @return [NilClass]
+        def update_working_dir( index , path )
           unless Regulate.repo.bare
             Dir.chdir(::File.join(Regulate.repo.path, '..')) do
               if file_path_scheduled_for_deletion?(index.tree, path)
@@ -149,8 +154,12 @@ module Regulate
         # path - The String path of the file including extension.
         #
         # Returns the Boolean response.
-        # @see https://github.com/github/gollum/blob/master/lib/gollum/wiki.rb
-        def file_path_scheduled_for_deletion?(map, path)
+        # @see https://github.com/github/gollum/blob/79a1fb860d261d7f836fe75f5f8b4b88fc541a0c/lib/gollum/wiki.rb#L459
+        #
+        # @param [Grit::Tree] map The tree containing our path that we are checking
+        # @param [String] path The path/path-to-file to check
+        # @return [TrueClass,FalseClass]
+        def file_path_scheduled_for_deletion?( map , path )
           parts = path.split('/')
           if parts.size == 1
             deletions = map.keys.select { |k| !map[k] }
@@ -168,11 +177,11 @@ module Regulate
 
         # Setup some standard commit data
         #
-        # @param [String] Our commit message
-        # @param [String] Our author name
-        # @param [String] Our author email
-        # @param [String] The type of action being taken in the commit
-        def build_commit(commit_message, author_name, author_email, mode)
+        # @param [String] commit_message Our commit message
+        # @param [String] author_name Our author name
+        # @param [String] author_email Our author email
+        # @param [String] mode The type of action being taken in the commit
+        def build_commit( commit_message , author_name , author_email , mode )
           {
             :name     => author_name.nil? ? "Anonymous" : author_name,
             :email    => author_email    ||= "anon@anonymous.com",
@@ -181,7 +190,10 @@ module Regulate
         end
 
         # Return whether or not a resource directory exists in the repo with the given ID
-        def exists?(id)
+        #
+        # @param [String] id The ID that we are checking
+        # @return [TrueClass,FalseClass]
+        def exists?( id )
           Regulate.repo.commits.any? && !(current_tree / File.join(id, 'attributes.json')).nil?
         end
 

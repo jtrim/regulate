@@ -1,8 +1,8 @@
-# Class lifted from Devise.  Thanks josevalim!
 module Regulate
 
   module Generators
 
+    # Class lifted from Devise.  Thanks josevalim!
     class ViewsGenerator < Rails::Generators::Base
       source_root File.expand_path("../../../../app/views", __FILE__)
       desc "Copies all Regulate views to your application in app/views/pages."

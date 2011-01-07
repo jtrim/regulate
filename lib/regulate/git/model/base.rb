@@ -17,8 +17,8 @@ module Regulate
 
         # Standard class init
         #
-        # @param [Hash] Attributes to instantiate our resource with
-        # @param [TrueClass,FalseClass] Whether we are dealing with a new record or not
+        # @param [Hash] attributes Attributes to instantiate our resource with
+        # @param [TrueClass,FalseClass] new_record Whether we are dealing with a new record or not
         def initialize( attributes = {} , new_record = true )
           @new_record = new_record
           assign_attributes(attributes)
@@ -47,7 +47,7 @@ module Regulate
 
         # Allow attributes to be mass assigned then saved
         #
-        # @param [Hash] Our attributes
+        # @param [Hash] args Our attributes
         def update_attributes(args = {})
           assign_attributes(args)
           save
@@ -56,7 +56,7 @@ module Regulate
         # Allow attributes to be mass assigned then saved
         # Will throw exceptions on error
         #
-        # @param [Hash] Our attributes
+        # @param [Hash] args Our attributes
         def update_attributes!(args = {})
           assign_attributes(args)
           save!
@@ -202,22 +202,22 @@ module Regulate
 
         # ActiveModel required helper to remove an attribute by setting it to nil
         #
-        # @param [Symbol] The attribute to clear
-        def clear_attribute(attribute)
+        # @param [Symbol] attribute The attribute to clear
+        def clear_attribute( attribute )
           send("#{attribute}=", nil)
         end
 
         # ActiveModel required helper to check the existence of an attribute
         #
-        # @param [Symbol] The attribute name
-        def attribute?(attribute)
+        # @param [Symbol] attribute The attribute name
+        def attribute?( attribute )
           send(attribute).present?
         end
 
         # Method to accept a hash of model attributes and assign them to the attributes hash via the attr readers
         #
-        # @param [Hash] The hash of attributes
-        def assign_attributes(args = {})
+        # @param [Hash] args The hash of attributes
+        def assign_attributes( args = {} )
           args.each do |attr, value|
             send("#{attr}=", value)
           end unless args.blank?
