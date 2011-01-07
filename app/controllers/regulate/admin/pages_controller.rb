@@ -2,6 +2,7 @@ module Regulate
 
   module Admin
 
+    # Standard CRUD Controller
     class PagesController < ActionController::Base
       before_filter :load_page, :only => [:edit,:update,:destroy]
 
@@ -49,8 +50,9 @@ module Regulate
         @page = Regulate::Page.find(params[:id])
       end
 
-    end
+    end # class PagesController
 
-  end
+  end # module Admin
 
-end
+end # module Regulate
+

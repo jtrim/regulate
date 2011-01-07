@@ -1,7 +1,9 @@
 module Regulate
+
   class Engine < Rails::Engine
 
     initializer 'regulate.load_app_instance_data' do |app|
+
       Regulate.setup do |config|
 
         # Set our host app root path
@@ -11,7 +13,7 @@ module Regulate
         if( File.exists?( File.join( config.app_root , 'config' , 'regulate.yml') ) )
           yaml_path = File.join(config.app_root, "config", "regulate.yml")
         else
-          # Use the provided default
+          # Use the provided default in our gem
           yaml_path = File.join(root , "config", "regulate.yml")
         end
 
@@ -33,7 +35,10 @@ module Regulate
         config.repo = Grit::Repo.new(repo_path)
 
       end
+
     end
 
-  end
-end
+  end # class Engine
+
+end # module Regulate
+
