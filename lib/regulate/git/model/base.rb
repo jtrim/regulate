@@ -78,7 +78,7 @@ module Regulate
               :commit_message => commit_message,
               :author_name => author_name,
               :author_email => author_email,
-              :attributes => attributes.merge( { :edit_regions => edit_regions } ).to_json(:except => ['author_email', 'author_name', 'commit_message']),
+              :attributes => attributes.to_json(:except => ['author_email', 'author_name', 'commit_message']),
               :rendered => build_rendered_html
             })
           else
@@ -113,7 +113,7 @@ module Regulate
         def build_rendered_html
           rendered = self.view.dup
           rendered.gsub!( /\{\{(.+?)\}\}/ ) do |match|
-            attributes[$1] || edit_regions[$1] || ""
+            attributes[$1] || attributes["edit_regions"][$1] || ""
           end
           rendered
         end
@@ -138,10 +138,6 @@ module Regulate
         class_attribute :_attributes
         self._attributes = []
 
-        # Defining our _edit_regions container
-        class_attribute :_edit_regions
-        self._edit_regions = []
-
         # This lets us call Instance.attributes and get accurate data in hash form
         #
         # @example Set Model Attributes
@@ -160,33 +156,6 @@ module Regulate
           end
         end
 
-        # This lets us call Instance.custom_attributes and get accurate data in hash form
-        # This is primarily for the creation of on-the-fly attributes
-        #
-        # @example Set Model Attributes
-        #   class MyModel < Regulate::Git::Model::Base
-        #     attributes :my_custom_attribute
-        #   end
-        #   @my_model = MyModel.new
-        #   @my_model.my_custom_attribute = "my_custom_value"
-        #   @my_model.attributes
-        #
-        # @return [Hash] Our resource attributes
-        def edit_regions
-          self._edit_regions.inject({}) do |hash, attr|
-            hash[attr.to_s] = send(attr)
-            hash
-          end
-        end
-
-        # Fancy method missing so that we can set custom attributes on the fly
-        def method_missing( method , *args , &blk )
-          if !self.respond_to? method
-            self.class.edit_regions( method.to_s.delete("?=").to_sym )
-            send( method , *args , &blk )
-          end
-        end
-
         # Our class methods
         class << self
 
@@ -201,18 +170,6 @@ module Regulate
             attr_accessor *names
             define_attribute_methods names
             self._attributes += names
-          end
-
-          # This is setting on-the-fly custom editable areas of individual pages
-          #
-          # @example Setting Custom Model Attributes
-          #   custom_attributes :id, :commit_message, :author_name, :author_email, :title, :view
-          #
-          # @param [Array] An array of attribute names as symbols
-          def edit_regions(*names)
-            attr_accessor *names
-            define_attribute_methods names
-            self._edit_regions += names
           end
 
           # Check whether or not an item in our repo already exists with the given ID
@@ -254,7 +211,7 @@ module Regulate
         end
 
         # These attributes will be required for all of our models, so we set them here
-        attributes :id, :commit_message, :author_name, :author_email, :title, :view
+        attributes :id, :commit_message, :author_name, :author_email, :title, :view, :edit_regions
 
         protected
 
@@ -293,12 +250,7 @@ module Regulate
 
         # Accepts a JSON string and creates a new instance of the object
         def self.new_from_git( resource_data )
-          parsed_hash = JSON.parse(resource_data)
-          edit_regions_data = parsed_hash.delete('edit_regions')
-          parsed_hash = parsed_hash.select { |key, value| key != 'edit_regions' }
-          new_resource = self.new( parsed_hash , false )
-          new_resource.send( :assign_attributes , edit_regions_data )
-          new_resource
+          self.new( JSON.parse( resource_data , false ) )
         end
 
       end # class Base

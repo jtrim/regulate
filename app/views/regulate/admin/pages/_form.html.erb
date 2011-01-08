@@ -10,12 +10,6 @@
       <%= f.label :view %>
       <%= f.text_area :view %>
     </div>
-    <% @page._edit_regions.each do |attribute| %>
-      <div class="form_row">
-        <%= f.label attribute%>
-        <%= f.text_area attribute %>
-      </div>
-    <% end %>
     <div class="form_row">
       <%= f.submit "Save" %>
       <%= link_to "Cancel" , regulate_admin_regulate_pages_path %>
