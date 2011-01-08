@@ -14,7 +14,7 @@ Rails.application.routes.draw do
     #   - namespaced to "admin"
     #   - under the Admin module
     #   - the route names namespaced under admin_
-    scope "admin", :module => :admin, :as => :admin do
+    scope "admin", :module => :admin, :as => :admin_regulate do
       resources :pages
     end
   end

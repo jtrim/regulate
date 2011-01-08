@@ -24,6 +24,16 @@ module Regulate
           ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
         end
 
+        # Return an array of attributes.json data strings for all IDs in the repo
+        #
+        # @return [Array] An array of JSON strings
+        def find_all
+          Regulate.repo.tree.contents.collect { |tree|
+            attributes_json = ( tree / 'attributes.json' )
+            attributes_json.data unless attributes_json.nil?
+          }.compact
+        end
+
         # Find and return the rendered HTML for a given id
         #
         # @param [String] id The id to search for

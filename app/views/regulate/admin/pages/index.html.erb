@@ -1,0 +1,10 @@
+<h2>Pages</h2>
+<%= link_to "New Page", new_regulate_admin_regulate_page_path %>
+<ul>
+  <% @pages.each do |page| %>
+    <li>
+      <%= page.title %>
+      <%= link_to "Edit" , edit_regulate_admin_regulate_page_path(page.id) %>
+    </li>
+  <% end %>
+</ul>

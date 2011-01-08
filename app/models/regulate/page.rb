@@ -11,7 +11,8 @@ module Regulate
       @title = new_title
       # Make sure that we're setting our ID.
       # This needs to be URI-friendly
-      @id = self.title.gsub(%r{[ /<>]}, '-').downcase
+      #@id = self.title.gsub(%r{[ /<>]}, '-').downcase
+      @id = self.title.gsub(/[^a-zA-Z0-9']+/, "-").chomp('-').reverse.chomp('-').reverse.downcase
     end
 
   end

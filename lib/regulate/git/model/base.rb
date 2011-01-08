@@ -73,12 +73,12 @@ module Regulate
           end
           if valid?
             clear_cached_vars
-            !!Regulate::Git::Interface.save({
+            Regulate::Git::Interface.save({
               :id => id,
               :commit_message => commit_message,
               :author_name => author_name,
               :author_email => author_email,
-              :attributes => attributes.to_json(:except => ['author_email', 'author_name', 'commit_message']),
+              :attributes => attributes.merge( { :edit_regions => edit_regions } ).to_json(:except => ['author_email', 'author_name', 'commit_message']),
               :rendered => build_rendered_html
             })
           else
@@ -111,9 +111,9 @@ module Regulate
         #   @my_model.view = "<h3>{{my_fancy_subtitle}}</h3>"
         #   @my_model.build_rendered_html
         def build_rendered_html
-          rendered = self.view
+          rendered = self.view.dup
           rendered.gsub!( /\{\{(.+?)\}\}/ ) do |match|
-            _attributes[$1]
+            attributes[$1] || edit_regions[$1] || ""
           end
           rendered
         end
@@ -122,6 +122,10 @@ module Regulate
         # @note Default is to return false
         def new_record?
           @new_record || false
+        end
+
+        def persisted?
+          !new_record?
         end
 
         # Some required ActiveModel magic to help define convenience functions for...
@@ -134,8 +138,11 @@ module Regulate
         class_attribute :_attributes
         self._attributes = []
 
-        # Create our _attributes hash by iterating through the list
-        # This makes sure our _attributes hash has the most recent data from our instance variables then returns the hash
+        # Defining our _edit_regions container
+        class_attribute :_edit_regions
+        self._edit_regions = []
+
+        # This lets us call Instance.attributes and get accurate data in hash form
         #
         # @example Set Model Attributes
         #   class MyModel < Regulate::Git::Model::Base
@@ -144,6 +151,8 @@ module Regulate
         #   @my_model = MyModel.new
         #   @my_model.my_custom_attribute = "my_custom_value"
         #   @my_model.attributes
+        #
+        # @return [Hash] Our resource attributes
         def attributes
           self._attributes.inject({}) do |hash, attr|
             hash[attr.to_s] = send(attr)
@@ -151,19 +160,59 @@ module Regulate
           end
         end
 
+        # This lets us call Instance.custom_attributes and get accurate data in hash form
+        # This is primarily for the creation of on-the-fly attributes
+        #
+        # @example Set Model Attributes
+        #   class MyModel < Regulate::Git::Model::Base
+        #     attributes :my_custom_attribute
+        #   end
+        #   @my_model = MyModel.new
+        #   @my_model.my_custom_attribute = "my_custom_value"
+        #   @my_model.attributes
+        #
+        # @return [Hash] Our resource attributes
+        def edit_regions
+          self._edit_regions.inject({}) do |hash, attr|
+            hash[attr.to_s] = send(attr)
+            hash
+          end
+        end
+
+        # Fancy method missing so that we can set custom attributes on the fly
+        def method_missing( method , *args , &blk )
+          if !self.respond_to? method
+            self.class.edit_regions( method.to_s.delete("?=").to_sym )
+            send( method , *args , &blk )
+          end
+        end
+
         # Our class methods
         class << self
 
           # This is setting smart attribute methods for our custom model attributes
+          # This is useful for elements that you have the foresight to know you'll need ahead of time
           #
           # @example Setting Custom Model Attributes
-          #   attributes :id, :commit_message, :author_name, :author_email, :title, :view, :custom_fields
+          #   attributes :id, :commit_message, :author_name, :author_email, :title, :view
           #
           # @param [Array] An array of attribute names as symbols
           def attributes(*names)
             attr_accessor *names
             define_attribute_methods names
             self._attributes += names
+          end
+
+          # This is setting on-the-fly custom editable areas of individual pages
+          #
+          # @example Setting Custom Model Attributes
+          #   custom_attributes :id, :commit_message, :author_name, :author_email, :title, :view
+          #
+          # @param [Array] An array of attribute names as symbols
+          def edit_regions(*names)
+            attr_accessor *names
+            define_attribute_methods names
+            self._edit_regions += names
           end
 
           # Check whether or not an item in our repo already exists with the given ID
@@ -181,7 +230,7 @@ module Regulate
           # @return An instance of whatever class extends this base class
           def find(id)
             resource_data = Regulate::Git::Interface.find(id) || raise(Regulate::Git::Errors::PageDoesNotExist)
-            self.new(JSON.parse(resource_data),false)
+            self.new_from_git( resource_data )
           end
 
           # Search for by version, and return, a valid resource from the repo
@@ -191,7 +240,15 @@ module Regulate
           # @return an instance of whatever class extends this base class
           def find_by_version(version)
             resource_data = Regulate::Git::Interface.find_by_version(version) || raise(Regulate::Git::Errors::PageDoesNotExist)
-            self.new(JSON.parse(resource_data),false)
+            self.new_from_git( resource_data )
+          end
+
+          # Return new objects for each non-nil git item found
+          #
+          def find_all
+            Regulate::Git::Interface.find_all.collect do |resource_data|
+              self.new_from_git( resource_data )
+            end
           end
 
         end
@@ -233,6 +290,16 @@ module Regulate
 
         # Private var to make sure we are only calling our Git interface once
         attr_accessor :_rendered, :_versions
+
+        # Accepts a JSON string and creates a new instance of the object
+        def self.new_from_git( resource_data )
+          parsed_hash = JSON.parse(resource_data)
+          edit_regions_data = parsed_hash.delete('edit_regions')
+          parsed_hash = parsed_hash.select { |key, value| key != 'edit_regions' }
+          new_resource = self.new( parsed_hash , false )
+          new_resource.send( :assign_attributes , edit_regions_data )
+          new_resource
+        end
 
       end # class Base
 
