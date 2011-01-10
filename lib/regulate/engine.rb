@@ -40,6 +40,10 @@ module Regulate
 
     end
 
+    initializer "static assets" do |app|
+      app.middleware.use ::ActionDispatch::Static, "#{root}/public"
+    end
+
   end # class Engine
 
 end # module Regulate

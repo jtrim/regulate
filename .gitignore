@@ -9,4 +9,5 @@ test/dummy/db/repos/*
 test/dummy/db/*.sqlite3
 doc
 .yardoc
+test/dummy/tmp/**/*
 
