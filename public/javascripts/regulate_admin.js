@@ -69,7 +69,9 @@
       $('#custom_field_errors').empty();
 
       $.each( invalid_keys, function( i, v ) {
-        $('#custom_field_errors').append("Your key "+ v +" just got regulated, try using another key.</br>");
+        if( v !== "{{title}}" ) {
+          $('#custom_field_errors').append("Your key "+ v +" just got regulated, try using another key.</br>");
+        }
       });
 
       stored_keys = keys;
