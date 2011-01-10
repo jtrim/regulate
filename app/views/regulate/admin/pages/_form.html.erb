@@ -1,10 +1,14 @@
 <%= form_for([:regulate , :admin , @page], :as => :page)  do |f| %>
   <fieldset id="user_form">
     <div id="custom_field_errors"></div>
-    <% if @page.new_record? %>
+    <% if !@page.persisted? %>
       <div class="form_row">
         <%= f.label :title %>
         <%= f.text_field :title %>
+      </div>
+    <% else %>
+      <div class="form_row">
+        Title: <%= @page.title %>
       </div>
     <% end %>
     <div class="form_row">
