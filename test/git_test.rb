@@ -10,7 +10,7 @@ class GitTest < ActiveSupport::TestCase
             :attributes => "{ 'test' : 'test' }",
             :rendered => '<h1>Test</h1>'
           })
-    puts sha
+    #puts sha
   end
 end
 

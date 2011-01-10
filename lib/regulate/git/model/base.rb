@@ -20,8 +20,9 @@ module Regulate
         #
         # @param [Hash] attributes Attributes to instantiate our resource with
         # @param [TrueClass,FalseClass] new_record Whether we are dealing with a new record or not
-        def initialize( attributes = {} , new_record = true )
-          @new_record = new_record
+        def initialize( attributes = {} , persisted = false )
+          @persisted = persisted
+          @edit_regions = {} if @persisted
           assign_attributes(attributes)
         end
 
@@ -66,10 +67,15 @@ module Regulate
         # Attempt to save our record
         # @return [TrueClass,FalseClass] Whether or not the record was saved
         def save
-          if new_record?
+          if !persisted?
+            # Object create
+            # A git object with that id already exists
             return false if self.class.exists?(id)
           else
-            return false unless self.class.exists?(id)
+            # Object update
+            # No git ID with the current id exists
+            # You are not allowed to change the ID of an object
+            return false if !self.class.exists?(id)
           end
           if valid?
             clear_cached_vars
@@ -92,10 +98,15 @@ module Regulate
         # @raise [Regulate::Git::Errors::PageDoesNotExist] Throw this only if we are attempting to save an existing record and item does not already exist in the repo with the given ID
         # @raise [Regulate::Git::Errors::InvalidGitResourceError] Record is invalid and cannot save
         def save!
-          if new_record?
-            raise Regulate::Git::Errors::DuplicatePageError if Regulate::Git::Interface.exists?(id)
+          if !persisted?
+            # Object create
+            # A git object with that id already exists
+            raise Regulate::Git::Errors::DuplicatePageError if self.class.exists?(id)
           else
-            raise Regulate::Git::Errors::PageDoesNotExist unless Regulate::Git::Interface.exists?(id)
+            # Object update
+            # No git ID with the current id exists
+            # You are not allowed to change the ID of an object
+            raise Regulate::Git::Errors::PageDoesNotExist if !self.class.exists?(id)
           end
           ( valid? ) ? save : raise(Regulate::Git::Errors::InvalidGitResourceError)
         end
@@ -118,14 +129,8 @@ module Regulate
           rendered
         end
 
-        # Are we dealing with a resource that has been persisted before?
-        # @note Default is to return false
-        def new_record?
-          @new_record || false
-        end
-
         def persisted?
-          !new_record?
+          @persisted || false
         end
 
         # Some required ActiveModel magic to help define convenience functions for...
@@ -215,6 +220,15 @@ module Regulate
 
         protected
 
+        # Method to accept a hash of model attributes and assign them to the attributes hash via the attr readers
+        #
+        # @param [Hash] args The hash of attributes
+        def assign_attributes( args = {} )
+          args.each do |attr, value|
+            send("#{attr}=", value)
+          end unless args.blank?
+        end
+
         # ActiveModel required helper to remove an attribute by setting it to nil
         #
         # @param [Symbol] attribute The attribute to clear
@@ -229,15 +243,6 @@ module Regulate
           send(attribute).present?
         end
 
-        # Method to accept a hash of model attributes and assign them to the attributes hash via the attr readers
-        #
-        # @param [Hash] args The hash of attributes
-        def assign_attributes( args = {} )
-          args.each do |attr, value|
-            send("#{attr}=", value)
-          end unless args.blank?
-        end
-
         private
 
         # remove our cached vars so that they are reset on next call
@@ -250,7 +255,7 @@ module Regulate
 
         # Accepts a JSON string and creates a new instance of the object
         def self.new_from_git( resource_data )
-          self.new( JSON.parse( resource_data , false ) )
+          self.new( JSON.parse( resource_data ) , true )
         end
 
       end # class Base
