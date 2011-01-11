@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class GitTest < ActiveSupport::TestCase
+class Regulate::Git::InterfaceTest < ActiveSupport::TestCase
 
   @@iterator = 0
 

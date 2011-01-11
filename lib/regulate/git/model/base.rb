@@ -213,6 +213,20 @@ module Regulate
             end
           end
 
+          def create( attributes = {} )
+            temp = self.new(attributes)
+            temp.save
+            temp_data = Regulate::Git::Interface.find(temp.id)
+            return self.new_from_git(temp_data)
+          end
+
+          def create!( attributes = {} )
+            temp = self.new(attributes)
+            temp.save!
+            temp_data = Regulate::Git::Interface.find(temp.id)
+            return self.new_from_git(temp_data)
+          end
+
         end
 
         # These attributes will be required for all of our models, so we set them here
