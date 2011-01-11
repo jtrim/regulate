@@ -208,7 +208,7 @@ module Regulate
           {
             :name     => author_name.nil? ? "Anonymous" : author_name,
             :email    => author_email    ||= "anon@anonymous.com",
-            :message  => commit_message  ||= mode.eql?(:create) ? "Creating new page." : "Updating page."
+            :message  => commit_message  ||= mode.eql?(:create) ? "Committing resource changes." : "Deleting resource."
           }
         end
 

@@ -31,7 +31,7 @@ module Regulate
           clear_cached_vars
           Regulate::Git::Interface.delete({
             :id => id,
-            :commit_message => commit_message,
+            :commit_message => commit_message || "Deleting resource #{title}",
             :author_name => author_name,
             :author_email => author_email
           })
@@ -81,7 +81,7 @@ module Regulate
             clear_cached_vars
             Regulate::Git::Interface.save({
               :id => id,
-              :commit_message => commit_message,
+              :commit_message => commit_message || "#{ ( persisted? ) ? "Updating" : "Creating" } resource #{title}",
               :author_name => author_name,
               :author_email => author_email,
               :attributes => attributes.to_json(:except => ['author_email', 'author_name', 'commit_message']),
