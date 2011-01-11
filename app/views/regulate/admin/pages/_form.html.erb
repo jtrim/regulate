@@ -1,5 +1,14 @@
+<style type="text/css">
+fieldset {width:600px;float:left;}
+.form_row, label, textarea, #page_title {clear:both;width:100%;float:left;}
+label {padding:10px 0;text-transform:capitalize;}
+textarea {height:250px;}
+#edit_regions textarea {height:150px;}
+.form_row {padding:10px 0 10px 0;}
+</style>
+
 <%= form_for([:regulate , :admin , @page], :as => :page)  do |f| %>
-  <fieldset id="user_form">
+  <fieldset id="page_form">
     <div id="custom_field_errors"></div>
     <% if !@page.persisted? %>
       <div class="form_row">
@@ -15,6 +24,7 @@
       <%= f.label :view %>
       <%= f.text_area :view %>
     </div>
+    <div id="edit_regions"></div>
     <div class="form_row">
       <%= f.submit "Save" %>
       <%= link_to "Cancel" , regulate_admin_regulate_pages_path %>
@@ -24,4 +34,3 @@
 <%= javascript_tag "var existing_custom_fields = #{@page.edit_regions.to_json}" %>
 <%= javascript_include_tag "jquery.min.js" %>
 <%= javascript_include_tag "regulate_admin" %>
-
