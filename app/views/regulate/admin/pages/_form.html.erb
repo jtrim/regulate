@@ -20,10 +20,17 @@ textarea {height:250px;}
         Title: <%= @page.title %>
       </div>
     <% end %>
-    <div class="form_row">
-      <%= f.label :view %>
-      <%= f.text_area :view %>
-    </div>
+    <% if @authorized_user.is_admin? %>
+      <div class="form_row">
+        <%= f.label :view %>
+        <%= f.text_area :view %>
+      </div>
+    <% else %>
+      <div class="form_row">
+        View:<br /> <%= @page.view %>
+        <%= f.hidden_field :view %>
+      </div>
+    <% end %>
     <div id="edit_regions"></div>
     <div class="form_row">
       <%= f.submit "Save" %>

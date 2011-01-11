@@ -5,6 +5,8 @@ module Regulate
 
     # Standard CRUD Controller
     class PagesController < ActionController::Base
+      # Check that a user is authenticated
+      before_filter :is_authorized?
       # Load in our page object based on the ID
       before_filter :load_page, :only => [:edit,:update,:destroy]
 
@@ -23,6 +25,7 @@ module Regulate
 
       # PUT method to persist changes to a Page object
       def update
+        params[:page].delete(:view) if !@authorized_user.is_admin?
         if @page.update_attributes(params[:page])
           flash[:notice] = "Successfully updated #{params[:page][:title]}"
           redirect_to regulate_admin_regulate_pages_path
@@ -55,6 +58,12 @@ module Regulate
       end
 
       private
+
+      def is_authorized?
+        @authorized_user = AbstractAuth.invoke :authorized_user
+        @is_admin = AbstractAuth.invoke :is_admin
+        @is_editor = AbstractAuth.invoke :is_editor
+      end
 
       # Grab a page resource based on the ID passed to the URI
       def load_page
