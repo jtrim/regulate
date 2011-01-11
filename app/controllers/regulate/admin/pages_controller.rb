@@ -10,8 +10,7 @@ module Regulate
 
       # POST route to create a new page
       def create
-        @page = Regulate::Page.new(params[:page])
-        if @page.save
+        if Regulate::Page.create!(params[:page])
           flash[:notice] = "Page created!"
           redirect_to regulate_admin_regulate_pages_path
         else

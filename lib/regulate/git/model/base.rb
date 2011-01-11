@@ -200,8 +200,8 @@ module Regulate
           # @todo Should we be raising an exception here?
           # @raise [Regulate::Git::Errors::PageDoesNotExist] Raise this if the find fails
           # @return an instance of whatever class extends this base class
-          def find_by_version(version)
-            resource_data = Regulate::Git::Interface.find_by_version(version) || raise(Regulate::Git::Errors::PageDoesNotExist)
+          def find_by_version(id,commit_sha)
+            resource_data = Regulate::Git::Interface.find_by_version(id,commit_sha) || raise(Regulate::Git::Errors::PageDoesNotExist)
             self.new_from_git( resource_data )
           end
 
@@ -211,6 +211,20 @@ module Regulate
             Regulate::Git::Interface.find_all.collect do |resource_data|
               self.new_from_git( resource_data )
             end
+          end
+
+          def create( attributes = {} )
+            temp = self.new(attributes)
+            temp.save
+            temp_data = Regulate::Git::Interface.find(temp.id)
+            return self.new_from_git(temp_data)
+          end
+
+          def create!( attributes = {} )
+            temp = self.new(attributes)
+            temp.save!
+            temp_data = Regulate::Git::Interface.find(temp.id)
+            return self.new_from_git(temp_data)
           end
 
         end

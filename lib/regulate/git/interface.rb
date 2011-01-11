@@ -21,7 +21,11 @@ module Regulate
         # @param [String] id The id to search for
         # @return [String] The contents of the attributes.json file for the given id
         def find( id )
-          ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
+          begin
+            ( Regulate.repo.tree / File.join( id , 'attributes.json' ) ).data
+          rescue
+            nil
+          end
         end
 
         # Return an array of attributes.json data strings for all IDs in the repo
@@ -39,14 +43,22 @@ module Regulate
         # @param [String] id The id to search for
         # @return [String] The contents of the rendered.html file for the given id
         def find_rendered( id )
-          ( Regulate.repo.tree / File.join( id , 'rendered.html' ) ).data
+          begin
+            ( Regulate.repo.tree / File.join( id , 'rendered.html' ) ).data
+          rescue
+            nil
+          end
         end
 
         # Find the contents of a file given it's version SHA
         # @param [String] version The version SHA hash of the blob
         # @return [String] The contents of the blob at that version
-        def find_by_version( version )
-          Regulate.repo.blob(version).data
+        def find_by_version( id , version )
+          begin
+            ( Regulate.repo.commit(version).tree / File.join( id , 'attributes.json' ) ).data
+          rescue
+            nil
+          end
         end
 
         # Save changes to a resource directory with a commit
@@ -76,7 +88,7 @@ module Regulate
         #
         # @param [Hash] options A hash containing all the data we'll need to make a commit
         # @example A sample delete call
-        #   Regulate::Git::Interface.save({
+        #   Regulate::Git::Interface.delete({
         #     :id => id,
         #     :commit_message => commit_message,
         #     :author_name => author_name,
