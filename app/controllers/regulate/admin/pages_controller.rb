@@ -63,6 +63,8 @@ module Regulate
 
       def is_authorized?
         @authorized_user = AbstractAuth.invoke :authorized_user
+        # Uncomment the following line to test out admin interface
+        #@authorized_user.role = "admin"
         @is_admin = AbstractAuth.invoke :is_admin
         @is_editor = AbstractAuth.invoke :is_editor
       end
