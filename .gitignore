@@ -8,6 +8,7 @@ pkg/*
 test/dummy/db/repos/*
 test/dummy/db/*.sqlite3
 doc
+docs
 .yardoc
 test/dummy/tmp/**/*
 
