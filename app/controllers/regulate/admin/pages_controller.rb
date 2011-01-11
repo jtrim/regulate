@@ -7,6 +7,8 @@ module Regulate
     class PagesController < ActionController::Base
       # Check that a user is authenticated
       before_filter :is_authorized?
+      # Check that the user is an admin
+      before_filter :is_admin?, :only => [:new, :create, :destroy]
       # Load in our page object based on the ID
       before_filter :load_page, :only => [:edit,:update,:destroy]
 
@@ -63,6 +65,10 @@ module Regulate
         @authorized_user = AbstractAuth.invoke :authorized_user
         @is_admin = AbstractAuth.invoke :is_admin
         @is_editor = AbstractAuth.invoke :is_editor
+      end
+
+      def is_admin?
+        redirect_to regulate_admin_regulate_pages_path if !@is_admin
       end
 
       # Grab a page resource based on the ID passed to the URI

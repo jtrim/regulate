@@ -4,27 +4,12 @@ module Regulate
   module Generators
 
     # Standard install that lets a user copy files over so they can override some functionality
-    class InstallGenerator < Rails::Generators::Base
+    class MountUpGenerator < Rails::Generators::Base
 
       # Tell Rails where to find our templates
       source_root File.expand_path("../../templates", __FILE__)
 
-      desc "Copies files to your application that regulate needs."
-
-      # Copy over our CSS
-      def copy_css
-        template "regulate.css", "public/stylesheets/regulate.css"
-      end
-
-      # Copy over our JS
-      def copy_js
-        template "regulate.js", "public/javascripts/regulate.js"
-      end
-
-      # Copy over the repo config YAML file
-      def copy_yml
-        template "regulate.yml", "config/regulate.yml"
-      end
+      desc "Copies the regulate initializer so you can beat any geek off the street."
 
       # Copy over the Regulate initializer
       def copy_initializer

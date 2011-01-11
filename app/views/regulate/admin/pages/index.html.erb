@@ -1,7 +1,9 @@
 <h2>Pages</h2>
 <h3>Welcome <%= "#{@authorized_user.first_name} #{@authorized_user.last_name}" %></h3>
 <div>You have a role of <%= @authorized_user.role %></div>
-<%= link_to "New Page", new_regulate_admin_regulate_page_path %>
+<% if @authorized_user.is_admin %>
+  <%= link_to "New Page", new_regulate_admin_regulate_page_path %>
+<% end %>
 <ul>
   <% @pages.each do |page| %>
     <li>

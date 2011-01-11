@@ -3,11 +3,11 @@ module Regulate
   module Generators
 
     # Class lifted from Devise.  Thanks josevalim!
-    class ViewsGenerator < Rails::Generators::Base
+    class StrapGenerator < Rails::Generators::Base
 
       # Tell Rails where our view files are
       source_root File.expand_path("../../../../app/views", __FILE__)
-      desc "Copies all Regulate views to your application in app/views/pages."
+      desc "Copies all Regulate views, js, and yaml files to your application in app/views/regulate/."
 
       class_option :template_engine, :type => :string, :aliases => "-t",
                                      :desc => "Template engine for the views. Available options are 'erb' and 'haml'."
@@ -20,8 +20,18 @@ module Regulate
           verify_haml_version
           create_and_copy_haml_views
         else
-          directory "pages", "app/views/pages"
+          directory "regulate", "app/views/regulate"
         end
+      end
+
+      # Copy over our JS
+      def copy_js
+        template "regulate_admin.js", "public/javascripts/regulate_admin.js"
+      end
+
+      # Copy over the repo config YAML file
+      def copy_yml
+        template "regulate.yml", "config/regulate.yml"
       end
 
     protected
@@ -61,7 +71,7 @@ module Regulate
             end
           end
 
-          directory haml_root, "app/views/pages"
+          directory haml_root, "app/views/regulate"
         end
       end
 

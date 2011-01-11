@@ -11,3 +11,22 @@ Regulate.setup do |config|
 
 end
 
+# AbstractAuth Implementations
+# You NEED to set these methods appropriately for Regulate to function
+# This method should return a the currently authenticated resource
+#AbstractAuth.implement :authorized_user do
+  #::ApplicationController.send('current_user')
+#end
+# This method should return whether the currently authenticated resource is an admin or not
+# Admins are able to edit the view field on a CMS page and define the editable regions
+# If you want any authenticated user to be able to have this ability, simply return true in your implementation
+#AbstractAuth.implement :is_admin do
+  #::ApplicationController.send('current_user').is_admin?
+#end
+# This method should return whether the currently authenticated resource is an admin or not
+# Editors only have the ability to change the content of editable regions on the page
+# If you want any authenticated user to be able to have this ability, simply return true in your implementation
+#AbstractAuth.implement :is_editor do
+  #::ApplicationController.send('current_user').is_editor?
+#end
+
