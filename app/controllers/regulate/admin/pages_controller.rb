@@ -9,6 +9,8 @@ module Regulate
       before_filter :is_authorized?
       # Check that the user is an admin
       before_filter :is_admin?, :only => [:new, :create, :destroy]
+      # Check that the user is at least an editor
+      before_filter :is_editor?, :not => [:new, :create, :destroy]
       # Load in our page object based on the ID
       before_filter :load_page, :only => [:edit,:update,:destroy]
 
@@ -27,7 +29,7 @@ module Regulate
 
       # PUT method to persist changes to a Page object
       def update
-        params[:page].delete(:view) if !@authorized_user.is_admin?
+        params[:page].delete(:view) if !@is_admin
         if @page.update_attributes(params[:page])
           flash[:notice] = "Successfully updated #{params[:page][:title]}"
           redirect_to regulate_admin_regulate_pages_path
@@ -62,11 +64,15 @@ module Regulate
       private
 
       def is_authorized?
-        @authorized_user = AbstractAuth.invoke :authorized_user
+        @authorized_user = instance_eval &AbstractAuth.invoke(:authorized_user)
         # Uncomment the following line to test out admin interface
         #@authorized_user.role = "admin"
-        @is_admin = AbstractAuth.invoke :is_admin
-        @is_editor = AbstractAuth.invoke :is_editor
+        @is_admin = instance_eval &AbstractAuth.invoke(:is_admin)
+        @is_editor = instance_eval &AbstractAuth.invoke(:is_editor)
+      end
+
+      def is_editor?
+        redirect_to root_path if !@is_editor
       end
 
       def is_admin?

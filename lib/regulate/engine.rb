@@ -33,8 +33,8 @@ module Regulate
           init = true
         end
 
-        Grit::Repo.init(repo_path) if init
-        config.repo = Grit::Repo.new(repo_path)
+        ::Grit::Repo.init(repo_path) if init
+        config.repo = ::Grit::Repo.new(repo_path)
 
       end
 

@@ -89,7 +89,7 @@
 
             label = $("<label>", {
               'for': 'page[edit_regions][' + new_key + ']',
-              'text': new_key.replace('_', " "),
+              'text': new_key.replace(/_/g, " "),
               'class': new_key
             });
 

@@ -11,4 +11,5 @@ doc
 docs
 .yardoc
 test/dummy/tmp/**/*
+test/tmp/**/*
 

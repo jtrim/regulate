@@ -1,6 +1,6 @@
 require 'test_helper'
 require "rails/generators/test_case"
-require File.join(File.dirname(__FILE__), "../../lib/generators/regulate/mount_up_generator")
+require File.join(File.dirname(__FILE__), "../../lib/generators/regulate/strap_generator")
 
 class StrapGeneratorTest < Rails::Generators::TestCase
   tests Regulate::Generators::StrapGenerator
@@ -14,6 +14,8 @@ class StrapGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/regulate/admin/pages/edit.html.erb"
     assert_file "app/views/regulate/admin/pages/new.html.erb"
     assert_file "app/views/regulate/pages/show.html.erb"
+    assert_file "public/javascripts/regulate_admin.js"
+    assert_file "config/regulate.yml"
   end
 end
 

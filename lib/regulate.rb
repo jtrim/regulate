@@ -1,6 +1,7 @@
 # Requires
 require 'active_support/dependencies'
 require 'abstract_auth'
+require 'grit'
 
 # Our top level module to contain all of our engine gem functionality
 module Regulate
