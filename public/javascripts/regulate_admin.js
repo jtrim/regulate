@@ -41,7 +41,7 @@
           var invalid = false;
 
           // Keys can't be in the blacklist, also don't double up the errors
-          if( ~blacklist.indexOf( v ) && !~invalid_keys.indexOf( view ) ) {
+          if( ~blacklist.indexOf( v ) && !~invalid_keys.indexOf( v ) ) {
             invalid = true;
             invalid_keys.push({ 'key':v, 'msg': 'The key '+v+' is reserved.' });
           }
