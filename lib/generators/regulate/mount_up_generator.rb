@@ -9,7 +9,7 @@ module Regulate
       # Tell Rails where to find our templates
       source_root File.expand_path("../../templates", __FILE__)
 
-      desc "Copies the regulate initializer so you can beat any geek off the street."
+      desc "Copies the regulate initializer because you can't be any geek off the street."
 
       # Copy over the Regulate initializer
       def copy_initializer
