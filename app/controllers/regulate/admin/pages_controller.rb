@@ -4,7 +4,7 @@ module Regulate
   module Admin
 
     # Standard CRUD Controller
-    class PagesController < ActionController::Base
+    class PagesController < ::ApplicationController
       # Check that a user is authenticated
       before_filter :is_authorized?
       # Check that the user is an admin
