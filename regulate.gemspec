@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Collin Schaafsma", "Ryan Cook"]
   s.email       = ["collin@quickleft.com", "ryan@quickleft.com"]
   s.homepage    = ""
-  s.summary     = %q{The CMS we always wanted.}
-  s.description = %q{The CMS we always wanted.}
+  s.summary     = %q{Rails 3 engine that provides a Git backed CMS that allows for an admin to define editable regions in a page view.}
+  s.description = %q{Rails 3 engine that provides a Git backed CMS that allows for an admin to define editable regions in a page view.}
 
   s.rubyforge_project = "regulate"
 
