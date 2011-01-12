@@ -64,11 +64,11 @@ module Regulate
       private
 
       def is_authorized?
-        @authorized_user = instance_eval &AbstractAuth.invoke(:authorized_user)
+        @authorized_user = AbstractAuth.invoke(:authorized_user)
+        @is_admin = AbstractAuth.invoke(:is_admin)
         # Uncomment the following line to test out admin interface
-        #@authorized_user.role = "admin"
-        @is_admin = instance_eval &AbstractAuth.invoke(:is_admin)
-        @is_editor = instance_eval &AbstractAuth.invoke(:is_editor)
+        #@is_admin = true
+        @is_editor = AbstractAuth.invoke(:is_editor)
       end
 
       def is_editor?
