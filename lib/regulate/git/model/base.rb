@@ -15,6 +15,8 @@ module Regulate
 
         # The three fields that we absolutely need to successfully save and render any cms based model
         validates_presence_of :id, :title, :view
+        validates_length_of :id , :minimum => 1 , :allow_nil => false , :allow_blank => false
+        validates_length_of :title , :minimum => 1 , :allow_nil => false , :allow_blank => false
 
         # Standard class init
         #
@@ -42,9 +44,10 @@ module Regulate
           return @_versions ||= Regulate::Git::Interface.commits(id)
         end
 
-        # Return the rendered.html file from the repo
+        # Return the rendered.html file from the repo or build the rendered html
         def rendered
-          return @_rendered ||= Regulate::Git::Interface.find_rendered(id)
+          @_rendered ||= ( persisted? ) ? Regulate::Git::Interface.find_rendered(id) : build_rendered_html
+          @_rendered
         end
 
         # Allow attributes to be mass assigned then saved
@@ -67,17 +70,18 @@ module Regulate
         # Attempt to save our record
         # @return [TrueClass,FalseClass] Whether or not the record was saved
         def save
-          if !persisted?
-            # Object create
-            # A git object with that id already exists
-            return false if self.class.exists?(id)
-          else
-            # Object update
-            # No git ID with the current id exists
-            # You are not allowed to change the ID of an object
-            return false if !self.class.exists?(id)
-          end
           if valid?
+            if !persisted?
+              # Object create
+              # A git object with that id already exists
+              return false if self.class.exists?(id)
+            else
+              # Object update
+              # No git ID with the current id exists
+              # You are not allowed to change the ID of an object
+              return false if !self.class.exists?(id)
+            end
+
             clear_cached_vars
             Regulate::Git::Interface.save({
               :id => id,
@@ -87,6 +91,7 @@ module Regulate
               :attributes => attributes.to_json(:except => ['author_email', 'author_name', 'commit_message']),
               :rendered => build_rendered_html
             })
+            @persisted = true
           else
             false
           end
@@ -98,17 +103,22 @@ module Regulate
         # @raise [Regulate::Git::Errors::PageDoesNotExist] Throw this only if we are attempting to save an existing record and item does not already exist in the repo with the given ID
         # @raise [Regulate::Git::Errors::InvalidGitResourceError] Record is invalid and cannot save
         def save!
-          if !persisted?
-            # Object create
-            # A git object with that id already exists
-            raise Regulate::Git::Errors::DuplicatePageError if self.class.exists?(id)
+          if valid?
+            if !persisted?
+              # Object create
+              # A git object with that id already exists
+              raise Regulate::Git::Errors::DuplicatePageError if self.class.exists?(id)
+            else
+              # Object update
+              # No git ID with the current id exists
+              # You are not allowed to change the ID of an object
+              raise Regulate::Git::Errors::PageDoesNotExist if !self.class.exists?(id)
+            end
+
+            save
           else
-            # Object update
-            # No git ID with the current id exists
-            # You are not allowed to change the ID of an object
-            raise Regulate::Git::Errors::PageDoesNotExist if !self.class.exists?(id)
+            raise Regulate::Git::Errors::InvalidGitResourceError
           end
-          ( valid? ) ? save : raise(Regulate::Git::Errors::InvalidGitResourceError)
         end
 
         # Replaces mustache style syntax with appropriate instance attribute values
@@ -187,20 +197,36 @@ module Regulate
 
           # Search for by id, and return, a valid resource from the repo
           #
-          # @todo Should we be raising an exception here?
           # @raise [Regulate::Git::Errors::PageDoesNotExist] Raise this if the find fails
           # @return An instance of whatever class extends this base class
           def find(id)
+            resource_data = Regulate::Git::Interface.find(id)
+            self.new_from_git( resource_data )
+          end
+
+          # Search for by id, and return, a valid resource from the repo
+          #
+          # @raise [Regulate::Git::Errors::PageDoesNotExist] Raise this if the find fails
+          # @return An instance of whatever class extends this base class
+          def find!(id)
             resource_data = Regulate::Git::Interface.find(id) || raise(Regulate::Git::Errors::PageDoesNotExist)
             self.new_from_git( resource_data )
           end
 
           # Search for by version, and return, a valid resource from the repo
           #
-          # @todo Should we be raising an exception here?
           # @raise [Regulate::Git::Errors::PageDoesNotExist] Raise this if the find fails
           # @return an instance of whatever class extends this base class
           def find_by_version(id,commit_sha)
+            resource_data = Regulate::Git::Interface.find_by_version(id,commit_sha)
+            self.new_from_git( resource_data )
+          end
+
+          # Search for by version, and return, a valid resource from the repo
+          #
+          # @raise [Regulate::Git::Errors::PageDoesNotExist] Raise this if the find fails
+          # @return an instance of whatever class extends this base class
+          def find_by_version!(id,commit_sha)
             resource_data = Regulate::Git::Interface.find_by_version(id,commit_sha) || raise(Regulate::Git::Errors::PageDoesNotExist)
             self.new_from_git( resource_data )
           end
@@ -216,15 +242,13 @@ module Regulate
           def create( attributes = {} )
             temp = self.new(attributes)
             temp.save
-            temp_data = Regulate::Git::Interface.find(temp.id)
-            return self.new_from_git(temp_data)
+            return self.find(temp.id)
           end
 
           def create!( attributes = {} )
             temp = self.new(attributes)
             temp.save!
-            temp_data = Regulate::Git::Interface.find(temp.id)
-            return self.new_from_git(temp_data)
+            return self.find!(temp.id)
           end
 
         end
@@ -269,6 +293,7 @@ module Regulate
 
         # Accepts a JSON string and creates a new instance of the object
         def self.new_from_git( resource_data )
+          return nil if resource_data.nil?
           self.new( JSON.parse( resource_data ) , true )
         end
 

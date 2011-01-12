@@ -16,7 +16,7 @@ class Regulate::Git::InterfaceTest < ActiveSupport::TestCase
       :commit_message => 'Creating Git Resource',
       :author_name => 'Collin',
       :author_email => 'collin@quickleft.com',
-      :attributes => "{ 'test' : 'test #{get_iterator}' }",
+      :attributes => "{ \"title\" : \"test #{get_iterator}\" }",
       :rendered => "<h1>Test #{get_iterator}</h1>"
     }
     @commit_sha = Regulate::Git::Interface.save(@commit_data)
@@ -68,7 +68,7 @@ class Regulate::Git::InterfaceTest < ActiveSupport::TestCase
       :commit_message => 'Updating Git Resource',
       :author_name => 'Collin',
       :author_email => 'collin@quickleft.com',
-      :attributes => "{ 'test' : '1234567' }"
+      :attributes => "{ \"title\" : \"1234567\" }"
     })
     new_commit_sha = Regulate::Git::Interface.save(new_commit_data)
     assert_equal @commit_data[:attributes] , Regulate::Git::Interface.find_by_version(@commit_data[:id],@commit_sha)
