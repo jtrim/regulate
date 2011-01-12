@@ -56,7 +56,7 @@ module Regulate
       # Copy over the HAML files
       def create_and_copy_haml_views
         require 'tmpdir'
-        html_root = "#{self.class.source_root}/pages"
+        html_root = "#{self.class.source_root}/app/views/regulate"
 
         Dir.mktmpdir("regulate-haml.") do |haml_root|
           Dir["#{html_root}/**/*"].each do |path|
