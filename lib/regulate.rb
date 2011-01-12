@@ -11,7 +11,7 @@ module Regulate
 
   # Setup our AbstractAuth requirements
   AbstractAuth.setup do |config|
-    config.requires :authorized_user , :is_admin , :is_editor
+    config.requires :authenticated_user , :is_admin , :is_editor
   end
 
   # Our host application root path
