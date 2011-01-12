@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    regulate (0.0.1)
+    regulate (0.1.0)
       abstract_auth (~> 0.1.0)
       grit (~> 2.3.0)
       rails (~> 3.0.0)
