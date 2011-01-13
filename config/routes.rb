@@ -1,7 +1,5 @@
 Rails.application.routes.draw do
 
-  root :to => "application#index"
-
   # Load our engine's routes in to the host app:
   #   - Load our route namespace directly from the engine gem
   #   - Use the Regulate module
@@ -19,6 +17,7 @@ Rails.application.routes.draw do
     scope "admin", :module => :admin, :as => :admin_regulate do
       resources :pages
     end
+
   end
 
 end
