@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
 
-  def index
+  def home
     render :text => "hello"
   end
 
