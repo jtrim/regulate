@@ -3,8 +3,6 @@ module Regulate
   # The standard model for our CMS engine
   class Page < Regulate::Git::Model::Base
 
-    attributes :published
-
     # A title= override so that we are setting a URI-friendly id
     #
     # @param [String] The new title of our page
@@ -15,11 +13,6 @@ module Regulate
       # This needs to be URI-friendly
       #@id = self.title.gsub(%r{[ /<>]}, '-').downcase
       @id = self.title.gsub(/[^a-zA-Z0-9']+/, "-").chomp('-').reverse.chomp('-').reverse.downcase
-    end
-
-    # Override the published? method
-    def published?
-      published == true || published == "1" || published == "t" || published == "true"
     end
 
   end

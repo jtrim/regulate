@@ -34,7 +34,7 @@ module Regulate
       # Check whether a page is published
       def is_published?
         if !@is_admin || !@is_editor
-          redirect_to root_path if !@page.published
+          redirect_to root_path if !@page.published?
         end
       end
 

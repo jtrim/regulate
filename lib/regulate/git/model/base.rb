@@ -254,7 +254,12 @@ module Regulate
         end
 
         # These attributes will be required for all of our models, so we set them here
-        attributes :id, :commit_message, :author_name, :author_email, :title, :view, :edit_regions
+        attributes :id, :commit_message, :author_name, :author_email, :title, :view, :edit_regions, :published
+
+        # Override the published? method
+        def published?
+          published == true || published == "1" || published == "t" || published == "true"
+        end
 
         protected
 
