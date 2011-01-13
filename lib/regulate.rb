@@ -8,6 +8,7 @@ module Regulate
 
   # Autoloads
   autoload :Git , 'regulate/git'
+  autoload :Helpers , 'regulate/helpers'
 
   # Setup our AbstractAuth requirements
   AbstractAuth.setup do |config|
