@@ -1,12 +1,12 @@
 module Regulate
 
-  # @todo Build out XHR-only methods for frontend inline editing
-  class PagesController < ActionController::Base
+  class PagesController < ::ApplicationController
+    include Regulate::Helpers::ControllerHelpers
+    before_filter :load_page
+    before_filter :is_authenticated?
+    before_filter :is_published?
 
-    # Show function for front-end
-    def show
-      @page = Regulate::Page.find(params[:id])
-    end
+    def show; end
 
   end # class PagesController
 

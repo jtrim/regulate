@@ -5,13 +5,10 @@ module Regulate
 
     # Standard CRUD Controller
     class PagesController < ::ApplicationController
-      # Check that a user is authenticated
-      before_filter :is_authorized?
-      # Check that the user is an admin
+      include Regulate::Helpers::ControllerHelpers
+      before_filter :is_authenticated?
       before_filter :is_admin?, :only => [:new, :create, :destroy]
-      # Check that the user is at least an editor
       before_filter :is_editor?, :not => [:new, :create, :destroy]
-      # Load in our page object based on the ID
       before_filter :load_page, :only => [:edit,:update,:destroy]
 
       # POST route to create a new page
@@ -59,29 +56,6 @@ module Regulate
       # Render the edit action
       def show
         render :action => :edit
-      end
-
-      private
-
-      def is_authorized?
-        @authorized_user = instance_eval &AbstractAuth.invoke(:authenticated_user)
-        @is_admin = instance_eval &AbstractAuth.invoke(:is_admin)
-        # Uncomment the following line to test out admin interface
-        #@is_admin = true
-        @is_editor = instance_eval &AbstractAuth.invoke(:is_editor)
-      end
-
-      def is_editor?
-        redirect_to root_path if !@is_editor
-      end
-
-      def is_admin?
-        redirect_to regulate_admin_regulate_pages_path if !@is_admin
-      end
-
-      # Grab a page resource based on the ID passed to the URI
-      def load_page
-        @page = Regulate::Page.find(params[:id])
       end
 
     end # class PagesController
