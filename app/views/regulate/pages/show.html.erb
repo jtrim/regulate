@@ -1,5 +1,10 @@
 <h2><%= @page.title %></h2>
 <cite>by, <%= @page.versions.first.author.name %></cite>
+<% if !@page.published? %>
+  <div>
+    THIS PAGE HAS NOT YET BEEN PUBLISHED
+  </div>
+<% end %>
 <div>
   <%= raw @page.rendered %>
 </div>

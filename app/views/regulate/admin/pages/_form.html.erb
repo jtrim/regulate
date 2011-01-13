@@ -20,6 +20,10 @@ textarea {height:250px;}
         Title: <%= @page.title %>
       </div>
     <% end %>
+    <div class="form_row">
+      <%= f.label :published %>
+      <%= f.check_box :published %>
+    </div>
     <% if @is_admin %>
       <div class="form_row">
         <%= f.label :view %>
