@@ -16,4 +16,11 @@ class Regulate::PageTest < ActiveSupport::TestCase
     assert_equal "a-fa-ncy-title" , page.id
   end
 
+  test "removes apostrophes when creating id from title" do
+    page = Regulate::Page.new({
+      :title => "We'll LOVE you FORever"
+    })
+    assert_equal "we-ll-love-you-forever" , page.id
+  end
+
 end
