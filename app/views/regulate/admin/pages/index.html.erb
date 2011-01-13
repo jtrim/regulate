@@ -6,6 +6,7 @@
   <% @pages.each do |page| %>
     <li>
       <%= page.title %>
+      <%= link_to "Show" , regulate_page_path(page) %>
       <%= link_to "Edit" , edit_regulate_admin_regulate_page_path(page) %>
       <% if @is_admin %>
         <%= link_to "Delete" , regulate_admin_regulate_page_path(page), :confirm => 'Are you sure?', :method => :delete, :class => 'delete_link' %>
